@@ -1,32 +1,24 @@
 from etb-client-builder:latest as builder_base
+
 workdir /git
 
-arg LIGHTHOUSE_BRANCH="stable"
-arg PRYSM_BRANCH="v3.1.1-rc"
-arg NIMBUS_BRANCH="stable"
-arg LODESTAR_BRANCH="next"
-arg TEKU_BRANCH="master"
-
-arg GETH_BRANCH="master"
-arg NETHERMIND_BRANCH="master"
-arg BESU_BRANCH="main"
-arg ERIGON_BRANCH="devel"
-
-
 from builder_base as lighthouse_builder
+arg LIGHTHOUSE_BRANCH="stable"
 run git clone https://github.com/sigp/lighthouse.git && cd lighthouse && git checkout ${LIGHTHOUSE_BRANCH}
 run rustup toolchain install nightly-2022-07-12
 run cd lighthouse && LD_LIBRARY_PATH=/usr/lib/ RUSTFLAGS="-Cpasses=sancov-module -Cllvm-args=-sanitizer-coverage-level=3 -Cllvm-args=-sanitizer-coverage-trace-pc-guard -Ccodegen-units=1 -Cdebuginfo=2 -L/usr/lib/ -lvoidstar" cargo +nightly-2022-07-12 build --release --manifest-path lighthouse/Cargo.toml --target x86_64-unknown-linux-gnu --features modern --verbose --bin lighthouse
 run cd lighthouse && git log -n 1 --format=format:"%H" > /lighthouse.version
 
 from builder_base as teku_builder
+arg TEKU_BRANCH="master"
 run git clone https://github.com/Consensys/teku.git && \
-    cd teku && git checkout $TEKU_BRANCH && \
+    cd teku && git checkout ${TEKU_BRANCH} && \
     git log -n 1 --format=format:"%H" > /teku.version && \
     ./gradlew distTar installDist
 
 
 from builder_base as nimbus_builder
+arg NIMBUS_BRANCH="stable"
 run git clone https://github.com/status-im/nimbus-eth2.git && \
     cd nimbus-eth2 && git checkout ${NIMBUS_BRANCH} && \
     git log -n 1 --format=format:"%H" > /nimbus.version
@@ -34,10 +26,11 @@ run cd nimbus-eth2 && make -j64 nimbus_beacon_node NIMFLAGS="--cc:clang --clang.
     make -j64 nimbus_validator_client NIMFLAGS="--cc:clang --clang.exe:clang-14 --clang.linkerexe:clang-14 --passC:'-fno-lto -fsanitize-coverage=trace-pc-guard' --passL:'-fno-lto -L/usr/lib/ -lvoidstar'"
 
 from builder_base as prysm_builder
+arg PRYSM_BRANCH="v3.1.1-rc"
 run mkdir -p /git/src/github.com/prysmaticlabs/
 run mkdir -p /build
 run cd /git/src/github.com/prysmaticlabs/ && git clone https://github.com/prysmaticlabs/prysm && \
-    cd prysm && git checkout $PRYSM_BRANCH && \
+    cd prysm && git checkout ${PRYSM_BRANCH} && \
     git log -n 1 --format=format:"%H" > /prysm.version
 workdir /git/src/github.com/prysmaticlabs/prysm
 #Antithesis Instrumentation
@@ -60,6 +53,7 @@ run cd /git/src/github.com/prysmaticlabs/prysm && CGO_CFLAGS="-I/opt/antithesis/
 run go env GOPATH
 
 from builder_base as lodestar_builder
+arg LODESTAR_BRANCH="next"
 workdir /usr/app 
 run apt install -y --no-install-recommends python3-dev make g++
 run ln -s /usr/local/bin/python3 /usr/local/bin/python
@@ -69,6 +63,7 @@ run ln -s /usr/app/node_modules/.bin/lodestar /usr/local/bin/lodestar
 
 #Execution Builds
 from builder_base as besu_builder
+arg BESU_BRANCH="main"
 workdir /usr/src
 run git clone --progress https://github.com/hyperledger/besu.git && cd besu && git checkout ${BESU_BRANCH} && ./gradlew installDist
 run cd besu && git log -n 1 --format=format:"%H" > /besu.version
@@ -94,6 +89,7 @@ run cd erigon/ \
 run cd erigon && git log -n 1 --format=format:"%H" > /erigon.version
 
 from builder_base as geth_builder
+arg GETH_BRANCH="master"
 run mkdir -p /go/src/github.com/ethereum/ 
 workdir /go/src/github.com/ethereum/
 run git clone https://github.com/ethereum/go-ethereum \
@@ -115,6 +111,7 @@ run cd go-ethereum && git log -n 1 --format=format:"%H" > /geth.version
 
 # nethermind
 from builder_base as nethermind_builder
+arg NETHERMIND_BRANCH="master"
 run git clone https://github.com/NethermindEth/nethermind && cd nethermind && git checkout ${NETHERMIND_BRANCH}
 run cd nethermind && git submodule update --init src/Dirichlet src/int256 src/Math.Gmp.Native
 run cd /git/nethermind &&  dotnet publish src/Nethermind/Nethermind.Runner -c release -o out
@@ -181,6 +178,7 @@ copy --from=geth_builder /geth.version /geth.version
 copy --from=nethermind_builder /git/nethermind/out /nethermind/
 copy --from=nethermind_builder /nethermind.version /nethermind.version
 run chmod +x /nethermind/Nethermind.Runner
+run ln -s /nethermind/Nethermind.Runner /usr/local/bin/nethermind
 
 # geth-bad-block-creator
 copy --from=geth_bad_block_builder /git/go-ethereum/build/bin/geth /usr/local/bin/geth-bad-block
