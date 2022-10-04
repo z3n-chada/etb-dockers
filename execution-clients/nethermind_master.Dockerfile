@@ -4,9 +4,7 @@ WORKDIR /git
 
 ARG NETHERMIND_BRANCH="master"
 
-RUN git clone https://github.com/NethermindEth/nethermind && cd nethermind && git checkout ${NETHERMIND_BRANCH}
-
-RUN cd nethermind && git submodule update --init src/Dirichlet src/int256 src/Math.Gmp.Native
+RUN git clone --recursive https://github.com/NethermindEth/nethermind && cd nethermind && git checkout ${NETHERMIND_BRANCH}
 
 RUN cd /git/nethermind &&  dotnet publish src/Nethermind/Nethermind.Runner -c release -o out
 

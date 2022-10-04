@@ -112,8 +112,7 @@ run cd go-ethereum && git log -n 1 --format=format:"%H" > /geth.version
 # nethermind
 from builder_base as nethermind_builder
 arg NETHERMIND_BRANCH="master"
-run git clone https://github.com/NethermindEth/nethermind && cd nethermind && git checkout ${NETHERMIND_BRANCH}
-run cd nethermind && git submodule update --init src/Dirichlet src/int256 src/Math.Gmp.Native
+run git clone --recursive https://github.com/NethermindEth/nethermind && cd nethermind && git checkout ${NETHERMIND_BRANCH}
 run cd /git/nethermind &&  dotnet publish src/Nethermind/Nethermind.Runner -c release -o out
 run cd /git/nethermind && git log -n 1 --format=format:"%H" > /nethermind.version
 
