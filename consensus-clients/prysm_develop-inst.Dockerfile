@@ -39,7 +39,7 @@ RUN cd /git/src/github.com/prysmaticlabs/prysm && go get -t -d ./...
 RUN cd /git/src/github.com/prysmaticlabs/prysm && CGO_CFLAGS="-I/opt/antithesis/go_instrumentation/include" CGO_LDFLAGS="-L/opt/antithesis/go_instrumentation/lib" go build -o /build ./...
 RUN go env GOPATH
 
-FROM z3nchada/etb-client-runner
+FROM etb-client-runner
 
 ENV LD_LIBRARY_PATH=/usr/lib/
 
