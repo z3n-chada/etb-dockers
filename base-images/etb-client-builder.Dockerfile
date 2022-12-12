@@ -10,7 +10,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-transport-https \
     openjdk-17-jdk \
     ca-certificates \
-    build-essential \
     wget \
     tzdata \
     bash \
@@ -19,14 +18,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
     libc6-dev \
     libsnappy-dev \
-    python3-dev \
     git
 
 # set up dotnet
 RUN wget https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && dpkg -i packages-microsoft-prod.deb && rm packages-microsoft-prod.deb
-RUN apt update && apt install -y dotnet-sdk-6.0
+RUN apt update && apt install -y dotnet-sdk-7.0
 
-# set up clang 13
+# set up clang 14
 WORKDIR /git
 
 RUN wget --no-check-certificate https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 14
@@ -43,7 +41,7 @@ RUN ln -s /usr/local/go/bin/gofmt /usr/local/bin/gofmt
 # Install nodejs
 run apt update \
     && apt install curl ca-certificates -y --no-install-recommends \
-    && curl -sL https://deb.nodesource.com/setup_17.x | bash -
+    && curl -sL https://deb.nodesource.com/setup_18.x | bash -
 
 run apt-get update && apt-get install -y --no-install-recommends nodejs 
 
