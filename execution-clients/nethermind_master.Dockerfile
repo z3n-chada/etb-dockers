@@ -1,12 +1,12 @@
 from etb-client-builder:latest as builder
 
+RUN apt-get install -y libsnappy-dev libc6-dev libc6
+
 WORKDIR /git
 
 ARG NETHERMIND_BRANCH="master"
 
 RUN git clone https://github.com/NethermindEth/nethermind && cd nethermind && git checkout ${NETHERMIND_BRANCH}
-
-RUN cd nethermind && git submodule update --init src/Dirichlet src/int256 src/Math.Gmp.Native
 
 RUN cd /git/nethermind &&  dotnet publish src/Nethermind/Nethermind.Runner -c release -o out
 
