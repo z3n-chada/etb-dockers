@@ -3,15 +3,15 @@ from besu:develop as besu_builder
 from erigon:devel-inst as erigon_builder
 from geth:master-inst as geth_builder
 from nethermind:master as nethermind_builder
-from geth:bad-block-creator-inst as geth_bad_block_builder
+from geth:bad-block-creator as geth_bad_block_builder
 from tx-fuzzer:latest as tx_fuzzer_builder
 from lighthouse:unstable-inst as lh_builder
-from nimbus:unstable-inst as nimbus_builder
+from nimbus_testing:inst as nimbus_builder
 from prysm:develop-inst as prysm_builder
 from teku:master as teku_builder
 from lodestar:master as ls_builder
 
-from z3nchada/etb-client-runner:latest
+from etb-client-runner:latest
 
 # now copy in all the execution clients.
 

@@ -1,38 +1,50 @@
-from etb-client-builder:latest as rocks_builder
+FROM etb-client-builder:latest as rocks_builder
 
-workdir /git
+WORKDIR /git
 
 RUN cd rocksdb && make clean && make -j32 shared_lib
 
-run mkdir -p /rocksdb/lib && cd rocksdb && cp librocksdb.so* /rocksdb/lib/
+RUN mkdir -p /rocksdb/lib && cd rocksdb && cp librocksdb.so* /rocksdb/lib/
 
 
-from debian:bullseye-slim as base
+FROM debian:bullseye-slim as base
 # Install nodejs
-workdir /git
+WORKDIR /git
 
-run apt update && apt install curl ca-certificates -y --no-install-recommends && curl -sL https://deb.nodesource.com/setup_17.x | bash -
+RUN apt update && apt install curl ca-certificates -y --no-install-recommends \
+    wget \
+    lsb-release \
+    software-properties-common && \
+    curl -sL https://deb.nodesource.com/setup_18.x | bash -
 
-run apt-get update && apt-get install -y --no-install-recommends nodejs 
+RUN wget https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
+    dpkg -i packages-microsoft-prod.deb && \
+    rm packages-microsoft-prod.deb
 
-RUN apt-get update && apt-get install -y --no-install-recommends wget libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev openjdk-17-jre wget 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    nodejs \
+    libgflags-dev \
+    libsnappy-dev \
+    zlib1g-dev \
+    libbz2-dev \
+    liblz4-dev \
+    libzstd-dev \
+    openjdk-17-jre \
+    dotnet-runtime-7.0 \
+    aspnetcore-runtime-7.0
 
-RUN wget https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && dpkg -i packages-microsoft-prod.deb && rm packages-microsoft-prod.deb
+COPY --from=rocks_builder /rocksdb/lib/ /usr/local/rocksdb/lib/
 
-RUN apt update && apt install -y --no-install-recommends dotnet-runtime-6.0 aspnetcore-runtime-6.0
-
-copy --from=rocks_builder /rocksdb/lib/ /usr/local/rocksdb/lib/
-
-run cp /usr/local/rocksdb/lib/librocksdb.so* /usr/lib
+RUN cp /usr/local/rocksdb/lib/librocksdb.so* /usr/lib
 
 # Antithesis instrumentation resources
 COPY lib/libvoidstar.so /usr/lib/libvoidstar.so
 RUN mkdir -p /opt/antithesis/
 COPY go_instrumentation /opt/antithesis/go_instrumentation
 
-RUN apt update && apt install -y --no-install-recommends lsb-release wget software-properties-common
-
-RUN wget --no-check-certificate https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 14
+RUN wget --no-check-certificate https://apt.llvm.org/llvm.sh && \
+    chmod +x llvm.sh && \
+    ./llvm.sh 14
 
 ENV LLVM_CONFIG=llvm-config-14
 
